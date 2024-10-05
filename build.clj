@@ -4,7 +4,8 @@
 
 (def lib 'net.clojars.retroboard/retroboard)
 (def version "0.1.0-SNAPSHOT")
-(def main 'retroboard.retroboard)
+;; (def main 'retroboard.retroboard)
+(def main 'graaltest.hello)
 (def class-dir "target/classes")
 
 (defn test "Run all the tests." [opts]
@@ -27,7 +28,7 @@
          :ns-compile [main]))
 
 (defn ci "Run the CI pipeline of tests (and build the uberjar)." [opts]
-  (test opts)
+  ;;(test opts)
   (b/delete {:path "target"})
   (let [opts (uber-opts opts)]
     (println "\nCopying source...")

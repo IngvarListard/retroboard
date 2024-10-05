@@ -1,5 +1,7 @@
 (ns retroboard.ui.core
-  (:require [retroboard.ui.styles.styles :refer [styles]]))
+  (:require [retroboard.ui.styles.styles :refer [styles]]
+            [squint.compiler :as squint]
+            [cheshire.core :as json]))
 
 
 (defn head []
@@ -25,7 +27,13 @@
      :integrity
      "sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ"}]
    [:script
-    {:src "/js/ws.js"}]])
+    {:src "/js/ws.js"}]
+   [:script
+    {:src "/js/squint.js"}]
+   [:script {:type "importmap"}
+    (json/generate-string
+     {:imports
+      {"squint-cljs/src/squint/core.js" "/js/squint.js"}})]])
 
 
 (defn body [content]
@@ -37,3 +45,17 @@
    {:lang "ru" :html ""}
    (head)
    (body content)])
+
+(def state (atom nil))
+
+(defn ->js [form]
+  (let [res (squint.compiler/compile-string* (str form))]
+    (reset! state res)
+    (:body res)))
+
+(comment
+  (println
+   (->js '(let [elt (js/document.getElementById "counter")
+                val (-> (.-innerText elt) parse-long)]
+            (set! elt -innerText (inc val)))))
+  :rcf)

@@ -1,4 +1,5 @@
-(ns retroboard.ui.components.testcols)
+(ns retroboard.ui.components.testcols
+  (:require [retroboard.ui.core :refer [->js]]))
 
 (defn input []
   [:div
@@ -47,4 +48,5 @@
     (row [:div (col [:div (card)]) [:div {:class "d-grid"} (button)]])
     (row [:div (col [:div (card)]) [:div {:class "d-grid"} (button)]])
     (row [:div (col [:div (card)]) [:div {:class "d-grid"} (button)]])
-    ]])
+    ]
+   [:script {:type "text/javascript"} (->js '(console.log))]])
