@@ -16,7 +16,6 @@
         mount/mount {:mvn/version "0.1.19"}
         cheshire/cheshire {:mvn/version "5.13.0"}
         squint/squint {:git/url "https://github.com/squint-cljs/squint" :git/sha "a6cd645ac6a06605a5207766e93ceba5912ca694"}
-        clojupyter/clojupyter {:mvn/version "0.4.332"}
         garden/garden {:mvn/version "1.3.10"}
         org.graalvm.sdk/graal-sdk {:mvn/version "24.1.0"}
         org.graalvm.polyglot/js-community {:mvn/version "24.1.0" :extension "pom"}

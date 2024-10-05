@@ -7,6 +7,7 @@
             [ring.middleware.reload :refer [wrap-reload]]
             [ring.util.response :as r]
             [hiccup2.core :as h]
+            [hiccup2.core.]
             [retroboard.ui.components.home :refer [home-page]]
             [retroboard.ui.core :refer [page]]
             [retroboard.ui.components.testcols :refer [manycols input]]
@@ -14,13 +15,14 @@
             [retroboard.ui.components.wstest :refer [wsexample]])
   (:gen-class))
 
+
 (c/defroutes app-routes
   (c/GET "/" [] (r/response (str (h/html (page (home-page))))))
   (c/GET "/cols" [] (r/response (str (h/html (page (manycols))))))
   (c/GET "/wsexample" [] (r/response (str (h/html (page (wsexample))))))
   (c/GET "/api/board/add-card" [] (r/response (str (h/html (input)))))
   (c/GET "/api/board/add-card" [] (r/response (str (h/html (input)))))
-  (c/ANY "/ws/test" request (ws-handler request))
+  ;; (c/ANY "/ws/test" request (ws-handler request))
   ;; (c/GET "/api/forms/create-event" [] (ajax-views/get-create-event-view))
   ;; (c/POST "/api/forms/create-event" [] (fn [{:keys [form-params] :as _request}]
   ;;                                        (create-event! form-params)))
@@ -53,7 +55,17 @@
 
 
 (defn -main
-  [& _])
+  [& _]
+
+  ;; (run-jetty
+  ;;      (-> #'app-routes
+  ;;          wrap-reload
+  ;;          wrap-json-response
+  ;;          wrap-params)
+  ;;      {:port 3000
+  ;;       :async? true
+  ;;       :join? false})
+  (println 1))
 
 
 (comment

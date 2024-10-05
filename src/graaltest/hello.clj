@@ -1,9 +1,10 @@
 (ns graaltest.hello
   (:gen-class)
+  (:require [common.compjs :refer [->js]])
   (:import (org.graalvm.polyglot Context)))
 
 
-(defn run-js-2 [js-code]
+(defn run-js [js-code]
   (let [context (-> (Context/newBuilder (into-array String ["js"]))
                     (.allowAllAccess true)
                     (.build))]
@@ -11,4 +12,7 @@
 
 (defn -main [& args]
   (println 1)
-  (run-js-2 "console.log('Hello from JavaScript running on GraalVM!');"))
+
+  (run-js (->js '(let [e "adsf"]
+            (console.log e))))
+  )

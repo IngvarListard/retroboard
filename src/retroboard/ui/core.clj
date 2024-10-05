@@ -1,7 +1,8 @@
 (ns retroboard.ui.core
   (:require [retroboard.ui.styles.styles :refer [styles]]
-            [squint.compiler :as squint]
-            [cheshire.core :as json]))
+            [cheshire.core :as json]
+            [hiccup2.core :as h]
+            [common.compjs :refer [->js with-context-bindings]]))
 
 
 (defn head []
@@ -28,12 +29,14 @@
      "sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ"}]
    [:script
     {:src "/js/ws.js"}]
-   [:script
-    {:src "/js/squint.js"}]
+  ;;  [:script
+  ;;   {:src "/js/squint.js"}]
    [:script {:type "importmap"}
-    (json/generate-string
-     {:imports
-      {"squint-cljs/src/squint/core.js" "/js/squint.js"}})]])
+    (h/raw (json/generate-string
+            {:imports
+             {"squint-cljs/src/squint/core.js" "/js/squint.js"}}))]
+   [:script {:type "module" :async "true"}
+    (h/raw "globalThis.squint_core = await import('squint-cljs/src/squint/core.js');")]])
 
 
 (defn body [content]
@@ -46,16 +49,53 @@
    (head)
    (body content)])
 
-(def state (atom nil))
-
-(defn ->js [form]
-  (let [res (squint.compiler/compile-string* (str form))]
-    (reset! state res)
-    (:body res)))
-
 (comment
+
   (println
    (->js '(let [elt (js/document.getElementById "counter")
                 val (-> (.-innerText elt) parse-long)]
             (set! elt -innerText (inc val)))))
+
+
+  (println
+   (->js
+    (pr-str (with-context-bindings
+              '(do
+                 (def DAYS ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"])
+                 (defn app []
+                   {:init (fn []
+                            (this.initDate)
+                            (this.getNoOfDays))
+                    :month ""
+                    :year ""
+                    :no_of_days []
+                    :blankdays []
+                    :openEventModal false
+                    :isToday (fn [date]
+                               (this-as
+                                $
+                                (let [today (new Date)
+                                      d (new Date $.year $.month date)]
+                                  (identical? (-> today .toDateString) (-> d .toDateString)))))}))
+              ['a 1 'b 2 'c 3]))))
+
+  (->js
+   '(do
+      (def DAYS ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"])
+      (defn app []
+        {:init (fn []
+                 (this.initDate)
+                 (this.getNoOfDays))
+         :month ""
+         :year ""
+         :no_of_days []
+         :blankdays []
+         :openEventModal false
+         :isToday (fn [date]
+                    (this-as
+                     $
+                     (let [today (new Date)
+                           d (new Date $.year $.month date)]
+                       (identical? (-> today .toDateString) (-> d .toDateString)))))})))
+
   :rcf)
