@@ -1,18 +1,16 @@
 (ns retroboard.wsapi.core
   (:require [aleph.http :as http]
             [manifold.stream :as s]
-            [clojure.pprint :refer [pprint]]))
-
-(defn ws-handler [request]
-  (let [ws @(http/websocket-connection request)]
-    (s/consume
-     (fn [msg]
-       (println "Received message:" msg)
-       (s/put! ws (str "Echo: "))
-       (println "message sent")
-       true) ; Эхо-сообщение
-     ws)))
-
+            [clojure.pprint :refer [pprint]]
+            [manifold.bus :as bus]
+            [manifold.deferred :as d]
+            ;; [reitit.ring :as ring]
+            [ring.middleware.params :as params]
+            [ring.adapter.jetty :refer [run-jetty]]
+            [ring.middleware.json :refer [wrap-json-response]]
+            [ring.middleware.params :refer [wrap-params]]
+            [ring.middleware.reload :refer [wrap-reload]]
+            [ring.util.response :as r]))
 (def non-websocket-request
   {:status 400
    :headers {"content-type" "application/text"}
@@ -23,15 +21,72 @@
   (if-let [socket (try
                     @(http/websocket-connection req)
                     (catch Exception e
-                      (fn [] 
+                      (fn []
                         (println "Websocket connection error: " e))))]
     (do
-      (pprint req)
+      (println "echo-handler")
+
       (s/connect socket socket))
     non-websocket-request))
 
-(defn start-server []
-  (let [s (http/start-server echo-handler {:port 5000})]
-    (println "WebSocket server started on ws://localhost:5000")
+(defn handle-add-card [request])
+
+(defn asdf []
+
+  [:div {:id "notifications" :hx-swap-oob "beforeend"}
+   "adsfasdfwqerqwer"])
+
+(def boards (bus/event-bus))
+
+(defn add-card-handler [req]
+  (d/let-flow [conn (d/catch
+                     (http/websocket-connection req)
+                     (fn [_] nil))]
+              (if-not conn
+                non-websocket-request
+                (do
+                  (s/connect
+                   (bus/subscribe boards "board1")
+                   conn)
+                  (s/consume
+                   #(bus/publish! boards "board1" %)
+                   (->> conn
+                        (s/map #(str name ": " %))
+                        (s/buffer 100)))))))
+
+(defn ws-handler [request]
+  (case (:uri request)
+    "/ws/add-card" (add-card-handler request)
+    "/ws/echo" (echo-handler request)
+    non-websocket-request))
+
+(defn start-server [options]
+  (let [s (http/start-server ws-handler options)]
+    (println "WebSocket server started on ws://localhost:" (:port options))
     s))
 
+(comment
+  (defn s [] (http/start-server ws-handler {:port 5000}))
+  (s)
+  (def conn1 @(http/websocket-client "ws://localhost:5000/ws/add-card"))
+  (def conn2 @(http/websocket-client "ws://localhost:5000/ws/add-card"))
+
+  ;; Here we create two clients, and have them speak to each other
+  (let [conn1 @(http/websocket-client "ws://localhost:5000/add-card")
+        conn2 @(http/websocket-client "ws://localhost:5000/add-card")]
+
+    ;; sign our two users in
+    (s/put-all! conn1 ["shoes and ships" "Alice"])
+    (s/put-all! conn2 ["shoes and ships" "Bob"])
+
+    (s/put! conn1 "hello")
+
+    (println @(s/take! conn1))                                  ;=> "Alice: hello"
+    (println @(s/take! conn2))                                  ;=> "Alice: hello"
+
+    (s/put! conn2 "hi!")
+
+    (println @(s/take! conn1))                                  ;=> "Bob: hi!"
+    (println @(s/take! conn2)))                                 ;=> "Bob: hi!"
+
+  :rcf)
