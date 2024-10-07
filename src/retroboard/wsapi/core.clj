@@ -1,16 +1,8 @@
 (ns retroboard.wsapi.core
   (:require [aleph.http :as http]
-            [manifold.stream :as s]
-            [clojure.pprint :refer [pprint]]
             [manifold.bus :as bus]
             [manifold.deferred :as d]
-            ;; [reitit.ring :as ring]
-            [ring.middleware.params :as params]
-            [ring.adapter.jetty :refer [run-jetty]]
-            [ring.middleware.json :refer [wrap-json-response]]
-            [ring.middleware.params :refer [wrap-params]]
-            [ring.middleware.reload :refer [wrap-reload]]
-            [ring.util.response :as r]))
+            [manifold.stream :as s]))
 (def non-websocket-request
   {:status 400
    :headers {"content-type" "application/text"}
@@ -29,14 +21,9 @@
       (s/connect socket socket))
     non-websocket-request))
 
-(defn handle-add-card [request])
-
-(defn asdf []
-
-  [:div {:id "notifications" :hx-swap-oob "beforeend"}
-   "adsfasdfwqerqwer"])
-
 (def boards (bus/event-bus))
+
+(defn pub [text] (bus/publish! boards "board1" text))
 
 (defn add-card-handler [req]
   (d/let-flow [conn (d/catch
@@ -48,6 +35,7 @@
                   (s/connect
                    (bus/subscribe boards "board1")
                    conn)
+                  (println "subscribed")
                   (s/consume
                    #(bus/publish! boards "board1" %)
                    (->> conn

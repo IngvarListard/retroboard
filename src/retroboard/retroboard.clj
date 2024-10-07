@@ -29,17 +29,6 @@
                                             h/html
                                             str
                                             r/response))
-  ;; (c/GET "/api/forms/create-event" [] (ajax-views/get-create-event-view))
-  ;; (c/POST "/api/forms/create-event" [] (fn [{:keys [form-params] :as _request}]
-  ;;                                        (create-event! form-params)))
-  ;; (c/GET "/api/forms/create-event/object-form"
-  ;;   {form-params :query-string}
-  ;;   (fn [& _] (-> form-params
-  ;;                 form-decode
-  ;;                 keywordize-keys
-  ;;                 :select-object
-  ;;                 ajax-views/get-record-form-view)))
-  ;; (c/GET "/calendar" [] (r/response (calendar)))
   (route/resources "/")
   (route/not-found "Not Found"))
 
@@ -62,17 +51,7 @@
 
 
 (defn -main
-  [& _]
-
-  ;; (run-jetty
-  ;;      (-> #'app-routes
-  ;;          wrap-reload
-  ;;          wrap-json-response
-  ;;          wrap-params)
-  ;;      {:port 3000
-  ;;       :async? true
-  ;;       :join? false})
-  (println 1))
+  [& _])
 
 
 (comment
