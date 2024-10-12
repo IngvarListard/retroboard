@@ -13,7 +13,8 @@
             [retroboard.wsapi.core :as ws]
             [retroboard.ui.components.wstest :refer [wsexample]]
             [clojure.walk :refer [keywordize-keys]]
-            [retroboard.controllers.add-card :refer [add-card-ctl]])
+            [retroboard.views.append-test :refer [some-list append]]
+            [retroboard.ui.components.board :refer [retroboard add-card-input do-add-card]])
   (:gen-class))
 
 
@@ -21,14 +22,30 @@
   (c/GET "/" [] (r/response (str (h/html (page (home-page))))))
   (c/GET "/cols" [] (r/response (str (h/html (page (manycols))))))
   (c/GET "/wsexample" [] (r/response (str (h/html (page (wsexample))))))
-  (c/GET "/api/board/add-card" [] (r/response (str (h/html (input)))))
-  (c/POST "/api/board/add-card" request (-> request
-                                            :params
-                                            keywordize-keys
-                                            add-card-ctl
-                                            h/html
-                                            str
-                                            r/response))
+
+  
+  ;; TODO: malli схемы на входные параметры для связи компонентов
+  (c/GET "/board" [] (r/response (str (h/html (page (retroboard))))))
+  (c/GET "/api/board/add-card-input" request (r/response (str (h/html (add-card-input request)))))
+  (c/POST "/api/board/add-card-input" request (-> request
+                                                  :params
+                                                  keywordize-keys
+                                                  do-add-card
+                                                  h/html
+                                                  str
+                                                  r/response))
+
+  ;; (c/GET "/api/board/add-card" request (r/response (str (h/html (input request)))))
+  ;; (c/POST "/api/board/add-card" request (-> request
+  ;;                                           :params
+  ;;                                           keywordize-keys
+  ;;                                           add-card-ctl
+  ;;                                           h/html
+  ;;                                           str
+  ;;                                           r/response))
+
+  (c/POST "/api/board/append" request (r/response (str (h/html (append)))))
+  (c/GET "/append-test" request (r/response (str (h/html (page (some-list))))))
   (route/resources "/")
   (route/not-found "Not Found"))
 

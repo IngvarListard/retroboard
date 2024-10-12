@@ -3,8 +3,11 @@
             [retroboard.utils.common :refer [random-string]]
             [hiccup2.core :as h]))
 
+(def card-row-id "card-row-22")
+
 ;; параметры для отрисовки инпута
-(defn input []
+(defn input [request]
+  (println "request params" (:params request))
   (let [rand-str (random-string)
         id (str "form-id-" rand-str)
         room-id (str "room-id-" rand-str)
@@ -19,6 +22,7 @@
        [:input {:type "hidden" :name "room_id" :value "retroboard" :id room-id}]
        [:input {:type "hidden" :name "operation" :value "add-card" :id operation-id}]
        [:input {:type "hidden" :name "input-id" :value id :id input-id}]
+       [:input {:type "hidden" :name "add-card-input" :value (get-in request [:params "add-card-input"]) :id input-id}]
        [:input
         {:type "text",
          :class "form-control",
@@ -66,21 +70,24 @@
        {:class "card-text", :style "font-size:14px;"}
        text]]]))
 
-(defn button []
-  [:button
-   {:class "btn btn-outline-secondary"
-    :type "button"
-    :hx-get "/api/board/add-card"
-    :hx-swap "outerHTML"}
-   [:img {:class "icon" :src "/icons/plus-lg.svg"}]])
+(defn button [row-id]
+  (let [input-id (str "add-card-" row-id)]
+    [:div
+     [:input {:type "hidden" :name "add-card-input" :value row-id :id row-id}]
+     [:button
+      {:class "btn btn-outline-secondary"
+       :type "button"
+       :hx-include (format "#%s" row-id)
+       :hx-get "/api/board/add-card"
+       :hx-swap "outerHTML"}
+      [:img {:class "icon" :src "/icons/plus-lg.svg"}]]]))
 
-(defn card-row [& {row-id :row-id}]
-  (row (if row-id
-         [:div {:id row-id :hx-swap-oob "morphdom"}
-          (col [:div (card)])
-          [:div {:class "d-grid"}
-           (button)]]
-         (button))))
+;; (def card-row-id (str "card-row-" (random-string)))
+
+(defn card-row [row-id]
+  (row [:div {:id row-id :hx-swap-oob "beforeend" :class "item"}
+        [:div {:class "d-grid"}
+         (button row-id)]]))
 
 (defn manycols []
   [:div
@@ -92,22 +99,9 @@
      {:class "card-text"}
      "Theme"]]
    [:div {:class "row row-cols-4" :hx-ext "ws", :ws-connect "ws://localhost:5000/ws/add-card"}
-    (card-row)
-    (card-row)
-    (card-row)
-    (card-row)]
-  ;;  [:script {:type "text/javascript"} (h/raw "function aaa () {
-  ;;       window.onload = function() {
-  ;;           const inputField = document.getElementById(\"myInput\");
-  ;;           inputField.addEventListener(\"keydown\", function(event) {
-  ;;               if (event.key === \"Enter\") {
-  ;;                   event.preventDefault(); // Отключаем стандартное поведение
-  ;;                   console.log(\"Enter нажата, но форма не отправлена.\");
-  ;;               }
-  ;;           });
-  ;;       };
-  ;;                                             };
-  ;;         aaa()")]
-   ])
+    (card-row "row-1")
+    (card-row "row-2")
+    (card-row "row-3")
+    (card-row "row-4")]])
 
 

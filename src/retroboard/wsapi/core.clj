@@ -42,9 +42,27 @@
                         (s/map #(str name ": " %))
                         (s/buffer 100)))))))
 
+(defn card-operation-handler [req]
+  (d/let-flow [conn (d/catch
+                     (http/websocket-connection req)
+                     (fn [_] nil))]
+              (if-not conn
+                non-websocket-request
+                (do
+                  (s/connect
+                   (bus/subscribe boards "board2")
+                   conn)
+                  (println "subscribed")
+                  (s/consume
+                   #(bus/publish! boards "board2" %)
+                   (->> conn
+                        (s/map #(str name ": " %))
+                        (s/buffer 100)))))))
+
 (defn ws-handler [request]
   (case (:uri request)
     "/ws/add-card" (add-card-handler request)
+    "/ws/card-operations" (card-operation-handler request)
     "/ws/echo" (echo-handler request)
     non-websocket-request))
 
