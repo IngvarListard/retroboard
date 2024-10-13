@@ -13,7 +13,8 @@
 
 (def n
   "Сквозные имена компонентов"
-  {::col-number "col-number"})
+  {::col-number "col-number"
+   ::board "board"})
 
 (def k
   "Сквозные ключи атрибутов компонентов"
@@ -38,7 +39,6 @@
    [:div
     {:class "mb-3"}
     [:div
-     [:input {:type "hidden" :name (::col-number n) :value "wtf-card-input" :id "another-param"}]
      [:input
       {:type "text",
        :class "form-control",
@@ -48,9 +48,9 @@
      [:div {:class "d-grid justify-content-end"}
       [:button {:class "btn btn-outline-secondary"
                 :type "button"
-                :hx-include (str "#" (:text-input f))
+                ;; :hx-include (format "#%s, closest #row" (:text-input f))
+                :hx-include "closest #row"
                 :hx-post "/api/board/add-card-input"}
-                ;; :hx-include (format "#%s, #%s, #%s, #%s" room-id operation-id input-id text-input-id)
 
        [:img {:class "icon" :src "/icons/check2.svg"}]]]]]])
 
@@ -58,26 +58,24 @@
   "Кнопка для получения формы ввода для добавления новой карты в колонку"
   []
   [:div
-   [:input {:type "hidden" :name "add-card-input" :value "row-1" :id "row-1"}]
    [:button
     {:class "btn btn-outline-secondary"
-     :type "button"
-     :hx-include "#row-id"
+     :hx-include "closest #row"
      :hx-get "/api/board/add-card-input"
      :hx-swap "outerHTML"}
     [:img {:class "icon" :src "/icons/plus-lg.svg"}]]])
 
-(defn retroboard
+(def default-board "board2")
+
+(defn bboard
   "Основная доска"
-  []
-  [:div {:id "retroboard"
-         :class "container-fluid"}
-   [:div {:id "board-theme-text"
-          :class "card-body"}
-    [:h5 {:id "board-theme-title"
-          :class "card-title"} "Основная тема"]
-    [:p {:id "board-theme-desc"
-         :class "card-text"}
+  [& {:keys [board-name] :or {board-name default-board}}]
+  [:div {:id "retroboard" :class "container-fluid"}
+   [:input {:type "hidden" :name (::board n) :value board-name}]
+   [:div {:id "board-theme-text" :class "card-body"}
+    [:h5 {:id "board-theme-title" :class "card-title"}
+     "Основная тема"]
+    [:p {:id "board-theme-desc" :class "card-text"}
      "Описание темы"]]
      ;; TODO: row-cols-#
    [:div {:id "retroboard-cards"
@@ -87,10 +85,11 @@
           :ws-connect "ws://localhost:5000/ws/card-operations"}
     ;; TODO: здесь скорее всего нужно генерировать карты на основе входных параметров
     ;; Колонка 1
-    [:div {:id "row-1" :class "flex-fill row row-cols-1" (::col-number k) "1"}
+    [:div {:id "row" :class "flex-fill row"}
+     [:input {:type "hidden" :name (::col-number n) :value "1"}]
     ;; Элемент: карты в колонке
      [:div
-      {:id "col-1-cards"}
+      {:id "col-1"}
       [:div {:id "card-1"} "card data 1"]
       [:div {:id "card-2"} "card data 2"]
       [:div {:id "card-3"} "card data 3"]
@@ -98,10 +97,11 @@
      (get-add-card-input-button)]
 
     ;; Колонка 2
-    [:div {:id "row-1" :class "flex-fill row row-cols-1" (::col-number k) "2"}
+    [:div {:id "row" :class "flex-fill row"}
+     [:input {:type "hidden" :name (::col-number n) :value "2"}]
     ;; Элемент: карты в колонке
      [:div
-      {:id "col-1-cards"}
+      {:id "col-2"}
       [:div {:id "card-1"} "card data 1"]
       [:div {:id "card-2"} "card data 2"]
       [:div {:id "card-3"} "card data 3"]
@@ -109,14 +109,16 @@
      (get-add-card-input-button)]]])
 
 ;; TODO: принимать название канала в boards
-(defn pub [text] (bus/publish! boards "board2" text))
+(defn pub!
+  ([text] (pub! default-board text))
+  ([board text] (bus/publish! boards board text)))
 
 (defn do-add-card
   "Отправить карту через websocket"
-  [{:keys [text-input] :as params}]
+  [{:keys [board col-number text-input] :as params}]
   (println "do-add-card params: " params)
-  (pub (-> [:div {:hx-swap-oob "beforeend:#col-1-cards"}
-            [:div text-input]]
-           h/html
-           str))
+  (pub! (-> [:div {:hx-swap-oob (str "beforeend:#col-" col-number)}
+             [:div text-input]]
+            h/html
+            str))
   [:div])
