@@ -34,7 +34,6 @@
 (defn add-card-input
   "Поле ввода для добавления новой карты в колонку"
   [request]
-  (println "request params" (:params request))
   [:div
    [:div
     {:class "mb-3"}
@@ -48,7 +47,6 @@
      [:div {:class "d-grid justify-content-end"}
       [:button {:class "btn btn-outline-secondary"
                 :type "button"
-                ;; :hx-include (format "#%s, closest #row" (:text-input f))
                 :hx-include "closest #row"
                 :hx-post "/api/board/add-card-input"}
 

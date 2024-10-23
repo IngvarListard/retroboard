@@ -19,7 +19,8 @@
         garden/garden {:mvn/version "1.3.10"}
         org.graalvm.sdk/graal-sdk {:mvn/version "24.1.0"}
         org.graalvm.polyglot/js-community {:mvn/version "24.1.0" :extension "pom"}
-        aleph/aleph {:mvn/version "0.8.1"}}
+        aleph/aleph {:mvn/version "0.8.1"}
+        datascript/datascript {:mvn/version "1.7.3"}}
  :aliases
  {:run-m {:main-opts ["-m" "retroboard.retroboard"]}
   :run-x {:ns-default retroboard.retroboard
