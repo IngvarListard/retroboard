@@ -43,6 +43,20 @@
   (d/transact! conn [[:db.fn/retractEntity card-id]]))
 
 (comment
+  (defn add-records [conn]
+    (let [tx-data [{:board/theme "My Board2"}
+                   {:col/name "Column 1" :col/id 3}
+                   {:col/name "Column 2" :col/id 4}
+                   {:card/id 8 :card/text "This is a card in Column 1"}
+                   {:card/id 9 :card/text "This is a card in Column 2"}]]
+      (d/transact! conn tx-data)))
+
+;; Вызов функции для добавления записей
+  (def updated-conn (add-records conn))
+  updated-conn
+  :rcf)
+
+(comment
  ;; Добавление карточки
   (def new-card {:card-id 4 :card-text "card text fourcol"})
   (add-card @conn 101 new-card)
@@ -50,13 +64,13 @@
 ;; Удаление карточки
   (remove-card conn 3) ; Удаляем карточку с card-id 2
 
-(d/q '[:find ?col-name ?card-text
-       :where
-       [?c :col/name ?col-name]
-       [?c :col/id ?col-id]
-       [?card :card/id ?card-id]
-       [?card :card/text ?card-text]
-       [?c :col/id ?col-id]]
-     @conn)
+  (d/q '[:find ?col-name ?card-text
+         :where
+         [?c :col/name ?col-name]
+         [?c :col/id ?col-id]
+         [?card :card/id ?card-id]
+         [?card :card/text ?card-text]
+         [?c :col/id ?col-id]]
+       @conn)
 
   :rcf)
