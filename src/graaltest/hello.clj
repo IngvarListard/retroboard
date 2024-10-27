@@ -14,5 +14,4 @@
   (println 1)
 
   (run-js (->js '(let [e "adsf"]
-            (console.log e))))
-  )
+                   (console.log e)))))

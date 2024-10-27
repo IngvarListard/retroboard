@@ -1,4 +1,8 @@
-(ns retroboard.storage.boards)
+(ns retroboard.storage.boards
+  (:require  [retroboard.storage.update :as u]
+             [retroboard.storage.common :as c]
+             [retroboard.storage.add :as a]
+             [retroboard.storage.remove :as r]))
 
 (defn board
   []
@@ -7,68 +11,71 @@
                {:board-theme "theme"
                 :board-id 1
                 :cols
-                []}}]
+                [{:card-id "sdf"}]}}]
     (swap! storage into board)
     storage))
-
-
-(comment (in-place [] "element" 1))
-(defn in-place
-  [arr el idx]
-  (if (<= idx (count arr))
-    (let [before (subvec arr 0 idx)
-          after (subvec arr idx)]
-      (vec (concat before [el] after)))
-    []))
-
-(defn insert-col-by-idx
-  [storage board col col-idx]
-  #_(update-in storage [board :cols] #(in-place %1 %2 place-number) col)
-  (let [-add-col (fn [cols-arr col]
-                   #_(println a b place-number)
-                   (in-place cols-arr col col-idx))]
-    (update-in storage [board :cols] -add-col col)))
-
-(defn remove-by-idx
-  [v index]
-  (if (< index (count v))
-    (vec (concat (subvec v 0 index) (subvec v (inc index))))
-    v))
-
-(defn remove-col-by-idx
-  [storage board col-idx]
-  (update-in storage [board :cols] remove-by-idx col-idx))
-
-(defn update-col-by-idx
-  [storage board upd-col col-idx]
-  (let [path [board :cols col-idx]]
-    (if (< col-idx (count (get-in storage [board :cols])))
-      (update-in storage path #(merge %1 %2) upd-col)
-      storage)))
 
 (comment
   (def b (board))
 
-  ;; (add-col @b :board-1 {:c "col3"} 2)
-  ;; (remove-col-in-place @b :board-1 1)
-  (update-col-by-idx @b :board-1 {:c "new-val"} 3)
+  (a/add-in-place @b [:board-1 :cols] {:c "col-add-card" :cards [{:card "new-card-new-col"}]} 6)
+  (a/add-in-place @b [:board-1 :cols] {:new-col "new-col" :cards []} 0)
+  (swap! b #(a/add-in-place % [:board-1 :cols] {:new-col "new-col" :cards []} 0))
+  (swap! b #(a/add-in-place % [:board-1 :cols 0 :cards] {:card-id 888} 0))
 
-  (swap! b #(insert-col-by-idx % :board-1 {:c "col000"} 0))
-  (swap! b #(remove-col-by-idx % :board-1 0))
-  (swap! b #(update-col-by-idx % :board-1 {:c "new-val" :b "fqwerqwe"} 2))
+  (r/remove-from-board-in @b [:board-1 :cols] 0)
+  (swap! b #(r/remove-from-board-in % [:board-1 :cols 0 :cards] 0))
 
-  (def bb {:board-1
-           {:board-theme "theme"
-            :board-id 1
-            :cols
-            [{:c "col1"} {:c "col2"}]}})
+  (u/update-board-in
+   @b
+   [:board-1 :cols 1]
+   {:cards [{:new-brave-card "brave card"}] :not-card "another-val-2"}) ;; Обработка вектора
 
-  (let [before (subvec (get-in bb [:board-1 :cols]) 0 1)
-        after (subvec (get-in bb [:board-1 :cols]) 1)]
-    (vec (concat before [{"col11" "col11"}] after)))
+  ;; обновление карты
+  (u/update-board-in
+   @b
+   [:board-1 :cols 0 :cards 0 :card]
+   {:abrbal "abrbal"})
+
+  (u/update-board-in
+   @b
+   [:board-1 :cols 0 :cards 0]
+   {:card-id "easdf"})
+
+  (u/update-board-in @b [:board-1 :cols] 0 {:not-card "another-val-2"})
 
 
-  (update-in bb [:board-1 :cols] conj {"abrbal" "abrbal"})
-  (swap! b #(update-in % [:board-1 :cols] conj {"abrbal" "abrbal"}))
-  (clojure.pprint/pprint @b)
+  :rcf)
+
+(comment
+  :draft
+
+  (defn insert-col-by-idx
+    [storage board col col-idx]
+    (let [-add-col (fn [cols-arr col] (c/in-place cols-arr col col-idx))]
+      (update-in storage [board :cols] -add-col col)))
+  (swap! b #(insert-col-by-idx % :board-1 {:c "col000" :cards [{:card "new-val"}]} 0))
+
+  (defn update-col-by-idx
+    [storage board upd-col col-idx]
+    (let [path [board :cols col-idx]]
+      (if (< col-idx (count (get-in storage [board :cols])))
+        (update-in storage path #(merge %1 %2) upd-col)
+        storage)))
+
+  (defn update-in-path
+    [storage path idx val]
+
+    (println (get-in storage (conj path idx)))
+    (if (< idx (count (get-in storage (conj path idx))))
+      (do
+        (println (get-in storage (conj path idx)) val)
+        (update-in storage (conj path idx) #(merge %1 %2) val))
+      storage))
+  '("Folded"
+    (update-col-by-idx @b :board-1 {:c "new-val"} 3)
+    (update-in-path @b [:board-1 :cols 2 :cards] 0 {:card "another-val-1"})
+    (update-in-path @b [:board-1 :cols] 2 {:not-card "another-val-2"})
+    (update-col-by-idx @b :board-1 {:c "new-val" :b "fqwerqwe"} 2)
+    (swap! b #(update-col-by-idx % :board-1 {:c "new-val" :b "fqwerqwe"} 2)))
   :rcf)
