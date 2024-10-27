@@ -2,21 +2,47 @@
   (:require  [retroboard.storage.update :as u]
              [retroboard.storage.common :as c]
              [retroboard.storage.add :as a]
-             [retroboard.storage.remove :as r]))
+             [retroboard.storage.remove :as r])
+  (:import [java.util UUID]))
 
-(defn board
+(defn gen-uuid
+  []
+  (str (UUID/randomUUID)))
+
+(defn new-col
+  [& {:keys [id name cards] 
+      :or {id (gen-uuid) name "NO COL THEME" cards []}}]
+  {:id id :name name :cards cards})
+
+(defn new-card
+  [& {:keys [id text]
+      :or {id (gen-uuid) text ""}}]
+  {:id id :text text})
+
+(defn new-board [])
+
+(defn add-board
   []
   (let [storage (atom {})
         board {:board-1
-               {:board-theme "theme"
-                :board-id 1
+               {:name "Board 1"
+                :theme "theme"
+                :id 1
                 :cols
-                [{:card-id "sdf"}]}}]
+                [{:id 1
+                  :name "Column theme"
+                  :cards [(new-card :text "card col 1")]}
+                 {:id 2
+                  :name "Column theme 2"
+                  :cards [(new-card :text "card col 2")]}
+                 {:id 3
+                  :name "Column theme 3"
+                  :cards [(new-card :text "card col 3")]}]}}]
     (swap! storage into board)
     storage))
 
 (comment
-  (def b (board))
+  (def b (add-board))
 
   (a/add-in-place @b [:board-1 :cols] {:c "col-add-card" :cards [{:card "new-card-new-col"}]} 6)
   (a/add-in-place @b [:board-1 :cols] {:new-col "new-col" :cards []} 0)

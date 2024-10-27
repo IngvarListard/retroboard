@@ -67,44 +67,45 @@
 
 (defn bboard
   "Основная доска"
-  [& {:keys [board-name] :or {board-name default-board}}]
-  [:div {:id "retroboard" :class "container-fluid"}
-   [:input {:type "hidden" :name (::board n) :value board-name}]
-   [:div {:id "board-theme-text" :class "card-body"}
-    [:h5 {:id "board-theme-title" :class "card-title"}
-     "Основная тема"]
-    [:p {:id "board-theme-desc" :class "card-text"}
-     "Описание темы"]]
+  [storage]
+  (let [board-name (get-in @storage [:board-1 :name])]
+    [:div {:id "retroboard" :class "container-fluid"}
+     [:input {:type "hidden" :name (::board n) :value board-name}]
+     [:div {:id "board-theme-text" :class "card-body"}
+      [:h5 {:id "board-theme-title" :class "card-title"}
+       board-name]
+      [:p {:id "board-theme-desc" :class "card-text"}
+       (get-in @storage [:board-1 :theme])]]
      ;; TODO: row-cols-#
-   [:div {:id "retroboard-cards"
-          :class "row row-cols-4"
-          :hx-ext "ws"
+     [:div {:id "retroboard-cards"
+            :class "row row-cols-4"
+            :hx-ext "ws"
           ;; TODO: ws-connect порт должен быть такой же как у основного приложения
-          :ws-connect "ws://localhost:5000/ws/card-operations"}
+            :ws-connect "ws://localhost:5000/ws/card-operations"}
     ;; TODO: здесь скорее всего нужно генерировать карты на основе входных параметров
     ;; Колонка 1
-    [:div {:id "row" :class "flex-fill row"}
-     [:input {:type "hidden" :name (::col-number n) :value "1"}]
+      [:div {:id "row" :class "flex-fill row"}
+       [:input {:type "hidden" :name (::col-number n) :value "1"}]
+       [:p (get-in @storage [:board-1 :cols 0 :name])]
     ;; Элемент: карты в колонке
-     [:div
-      {:id "col-1"}
-      [:div {:id "card-1"} "card data 1"]
-      [:div {:id "card-2"} "card data 2"]
-      [:div {:id "card-3"} "card data 3"]
-      [:div {:id "card-4"} "card data 4"]]
-     (get-add-card-input-button)]
+       [:div
+        {:id "col-1"}
+        (println "CARD DESC:" (get-in @storage [:board-1 :cols 0 :cards 0 :text]))
+        [:div {:id "card-1"} (get-in @storage [:board-1 :cols 0 :cards 0 :text])]]
+       (get-add-card-input-button)]
 
     ;; Колонка 2
-    [:div {:id "row" :class "flex-fill row"}
-     [:input {:type "hidden" :name (::col-number n) :value "2"}]
+      [:div {:id "row" :class "flex-fill row"}
+       [:input {:type "hidden" :name (::col-number n) :value "2"}]
+       [:p (get-in @storage [:board-1 :cols 1 :name])]
     ;; Элемент: карты в колонке
-     [:div
-      {:id "col-2"}
-      [:div {:id "card-1"} "card data 1"]
-      [:div {:id "card-2"} "card data 2"]
-      [:div {:id "card-3"} "card data 3"]
-      [:div {:id "card-4"} "card data 4"]]
-     (get-add-card-input-button)]]])
+       [:div
+        {:id "col-2"}
+        [:div {:id "card-1"} (get-in @storage [:board-1 :cols 1 :cards 0 :text])]]
+       (get-add-card-input-button)]]]))
+
+(defn asdf [s]
+  (get-in @s [:board-1 :cols 0 :cards 0 :text]))
 
 ;; TODO: принимать название канала в boards
 (defn pub!

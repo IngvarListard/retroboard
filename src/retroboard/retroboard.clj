@@ -14,10 +14,12 @@
             [retroboard.ui.components.wstest :refer [wsexample]]
             [clojure.walk :refer [keywordize-keys]]
             [retroboard.views.append-test :refer [some-list append]]
-            [retroboard.ui.components.board :refer [bboard add-card-input do-add-card]])
+            [retroboard.ui.components.board :refer [bboard add-card-input do-add-card]]
+            [retroboard.storage.boards :refer [add-board]])
+
   (:gen-class))
 
-
+(defonce board-storage (add-board))
 
 (c/defroutes app-routes
   (c/GET "/" [] (r/response (str (h/html (page (home-page))))))
@@ -26,7 +28,7 @@
 
 
   ;; TODO: malli схемы на входные параметры для связи компонентов
-  (c/GET "/board" [] (r/response (str (h/html (page (bboard))))))
+  (c/GET "/board" [] (r/response (str (h/html (page (bboard board-storage))))))
   (c/GET "/api/board/add-card-input" request (r/response (str (h/html (add-card-input request)))))
   (c/POST "/api/board/add-card-input" request (-> request
                                                   :params
@@ -36,9 +38,8 @@
                                                   str
                                                   r/response))
 
-
   (c/POST "/api/board/append" request (r/response (str (h/html (append request)))))
-  (c/GET "/append-test" request (r/response (str (h/html (page (some-list))))))
+  (c/GET "/append-test" _ (r/response (str (h/html (page (some-list))))))
   (route/resources "/")
   (route/not-found "Not Found"))
 
