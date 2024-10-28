@@ -15,11 +15,18 @@
             [clojure.walk :refer [keywordize-keys]]
             [retroboard.views.append-test :refer [some-list append]]
             [retroboard.ui.components.board :refer [bboard add-card-input do-add-card]]
-            [retroboard.storage.boards :refer [add-board]])
+            [retroboard.storage.boards :refer [add-board new-card]])
 
   (:gen-class))
 
 (defonce board-storage (add-board))
+
+(comment
+  ;; добавление карточек в колонки. Проверка работы после перезагрузки страницы
+  ;; такое поведение нужно добавить в добавление карточки
+  (require '[retroboard.storage.add :as a])
+  (swap! board-storage #(a/add-in-place % [:board-1 :cols 2 :cards] (new-card :text "qwerdsafqwer") :idx 0))
+  :rcf)
 
 (c/defroutes app-routes
   (c/GET "/" [] (r/response (str (h/html (page (home-page))))))
@@ -33,7 +40,7 @@
   (c/POST "/api/board/add-card-input" request (-> request
                                                   :params
                                                   keywordize-keys
-                                                  do-add-card
+                                                  (do-add-card board-storage)
                                                   h/html
                                                   str
                                                   r/response))

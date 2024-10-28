@@ -1,7 +1,10 @@
 (ns retroboard.ui.components.board
   (:require [hiccup2.core :as h]
             [retroboard.wsapi.core :refer [boards]]
-            [manifold.bus :as bus]))
+            [manifold.bus :as bus]
+            [retroboard.storage.add :as a]
+            [retroboard.storage.boards :refer [new-card]]
+            [retroboard.utils.common :as u]))
 
 (def f
   "Сквозные параметры компонента"
@@ -20,20 +23,10 @@
   "Сквозные ключи атрибутов компонентов"
   {::col-number :col-number})
 
-;; TODO:
-;; Получается, надо было сразу располагать все компоненты в одном месте, будто это
-;; веб компонент. Там, где html, там и код, и общие переменные. Объявить внутренние
-;; константы и использовать их. Мб функции генерации id'шников
-
-"Что дальше
- Нужно из инпута отправлять текст, чтобы добавить в конкретную колонку
- Но наверное сначала лучше добавить две колонки, чтобы было удобнее тестировать
- колонки добавли. Добавляем текст
- 
- "
 (defn add-card-input
   "Поле ввода для добавления новой карты в колонку"
   [request]
+  (println "request add card input: " (:params request))
   [:div
    [:div
     {:class "mb-3"}
@@ -65,6 +58,23 @@
 
 (def default-board "board2")
 
+(defn board-card
+  [{:keys [id text]}]
+  [:div
+   {:id id :class "card"}
+   [:div text]])
+
+(defn board-column
+  [idx {:keys [id name cards] :as params}]
+  [:div {:id "row" :class "flex-fill row"}
+   [:input {:type "hidden" :name (::col-number n) :value idx}]
+   [:p name]
+    ;; Элемент: карты в колонке
+   (into
+    [:div]
+    (vec (map board-card cards)))
+   (get-add-card-input-button)])
+
 (defn bboard
   "Основная доска"
   [storage]
@@ -77,47 +87,36 @@
       [:p {:id "board-theme-desc" :class "card-text"}
        (get-in @storage [:board-1 :theme])]]
      ;; TODO: row-cols-#
-     [:div {:id "retroboard-cards"
-            :class "row row-cols-4"
-            :hx-ext "ws"
+     (into
+      [:div {:id "retroboard-cards"
+             :class "row row-cols-4"
+             :hx-ext "ws"
           ;; TODO: ws-connect порт должен быть такой же как у основного приложения
-            :ws-connect "ws://localhost:5000/ws/card-operations"}
-    ;; TODO: здесь скорее всего нужно генерировать карты на основе входных параметров
-    ;; Колонка 1
-      [:div {:id "row" :class "flex-fill row"}
-       [:input {:type "hidden" :name (::col-number n) :value "1"}]
-       [:p (get-in @storage [:board-1 :cols 0 :name])]
-    ;; Элемент: карты в колонке
-       [:div
-        {:id "col-1"}
-        (println "CARD DESC:" (get-in @storage [:board-1 :cols 0 :cards 0 :text]))
-        [:div {:id "card-1"} (get-in @storage [:board-1 :cols 0 :cards 0 :text])]]
-       (get-add-card-input-button)]
+             :ws-connect "ws://localhost:5000/ws/card-operations"}]
 
-    ;; Колонка 2
-      [:div {:id "row" :class "flex-fill row"}
-       [:input {:type "hidden" :name (::col-number n) :value "2"}]
-       [:p (get-in @storage [:board-1 :cols 1 :name])]
-    ;; Элемент: карты в колонке
-       [:div
-        {:id "col-2"}
-        [:div {:id "card-1"} (get-in @storage [:board-1 :cols 1 :cards 0 :text])]]
-       (get-add-card-input-button)]]]))
+      (vec (map-indexed board-column (get-in @storage [:board-1 :cols]))))]))
 
-(defn asdf [s]
-  (get-in @s [:board-1 :cols 0 :cards 0 :text]))
-
+(comment
+  (def asdf {:id 1, :name "Column theme", :cards [{:id "e4e84d21-be16-4f0a-87d7-57130fda13c2", :text "card col 1"}]})
+  (into
+   [:div {:id "row" :class "flex-fill row"}]
+   (vec (map-indexed board-column [asdf])))
+  :rcf)
 ;; TODO: принимать название канала в boards
+
 (defn pub!
   ([text] (pub! default-board text))
   ([board text] (bus/publish! boards board text)))
 
 (defn do-add-card
   "Отправить карту через websocket"
-  [{:keys [board col-number text-input] :as params}]
-  (println "do-add-card params: " params)
-  (pub! (-> [:div {:hx-swap-oob (str "beforeend:#col-" col-number)}
-             [:div text-input]]
-            h/html
-            str))
+  [{:keys [col-number text-input] :as params} board]
+  (let [col-number (-> col-number u/parse-int)]
+    (println "do-add-card params: " params)
+    (swap! board #(a/add-in-place % [:board-1 :cols col-number :cards] (new-card :text text-input)))
+    (pub! (-> [:div {:hx-swap-oob (str "beforeend:#col-" col-number)}
+               [:div text-input]]
+              h/html
+              str)))
+
   [:div])

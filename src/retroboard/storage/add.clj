@@ -3,8 +3,9 @@
 
 (defn add-in-place
   "Вставка значения в массив"
-  [storage path new-val idx]
+  [storage path new-val & {:keys [idx]}]
   (let [arr (get-in storage path)
+        idx (or idx (count arr))
         -add-col (fn [cols-arr col]
                    (println "Полученный массив: " arr)
                    (c/in-place cols-arr col idx))]

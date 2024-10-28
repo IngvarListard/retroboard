@@ -1,6 +1,12 @@
 (ns retroboard.utils.common
    (:import [java.util Random]))
 
+(defn parse-int [s]
+  (if s
+    (Integer. (re-find  #"\d+" s))
+    0))
+
+
 (defn random-string
   ([length]
    (let [chars "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
