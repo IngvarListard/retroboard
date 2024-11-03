@@ -14,7 +14,7 @@
             [retroboard.ui.components.wstest :refer [wsexample]]
             [clojure.walk :refer [keywordize-keys]]
             [retroboard.views.append-test :refer [some-list append]]
-            [retroboard.ui.components.board :refer [bboard add-card-input do-add-card]]
+            [retroboard.ui.components.board :refer [retroboard add-card-input do-add-card]]
             [retroboard.storage.boards :refer [add-board new-card]])
 
   (:gen-class))
@@ -35,19 +35,17 @@
   (c/GET "/cols" [] (r/response (str (h/html (page (manycols))))))
   (c/GET "/wsexample" [] (r/response (str (h/html (page (wsexample))))))
 
-
   ;; TODO: malli схемы на входные параметры для связи компонентов
   ;; (c/GET "/board" [] (r/response (str (h/html (page (bboard board-storage))))))
   ;; TODO: board name as storage key
   (c/GET "/board" [] (-> @board-storage
                          default-board
-                         bboard
+                         retroboard
                          page
                          h/html
                          str
                          r/response))
-  ;; (c/GET "/api/board/add-card-input" request (r/response (str (h/html (add-card-input request)))))
-  (c/GET "/api/board/add-card-input" request (-> request :params add-card-input h/html str r/response))
+  (c/GET "/api/board/add-card-input" request (-> request :params keywordize-keys add-card-input h/html str r/response))
   
   (c/POST "/api/board/add-card-input" request (-> request
                                                   :params

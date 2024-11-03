@@ -10,7 +10,7 @@
   (str (UUID/randomUUID)))
 
 (defn new-col
-  [& {:keys [id name cards] 
+  [& {:keys [id name cards]
       :or {id (gen-uuid) name "NO COL THEME" cards []}}]
   {:id id :name name :cards cards})
 
@@ -19,7 +19,13 @@
       :or {id (gen-uuid) text ""}}]
   {:id id :text text})
 
-(defn new-board [])
+(defn new-board
+  [board-key name theme & {:keys [board-id cols] :or {cols []}}]
+  {board-key
+   {:name name
+    :theme theme
+    :id board-id
+    :cols cols}})
 
 (defn add-board
   []
