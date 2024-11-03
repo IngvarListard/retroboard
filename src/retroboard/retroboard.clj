@@ -28,6 +28,8 @@
   (swap! board-storage #(a/add-in-place % [:board-1 :cols 2 :cards] (new-card :text "qwerdsafqwer") :idx 0))
   :rcf)
 
+(def default-board :board-1)
+
 (c/defroutes app-routes
   (c/GET "/" [] (r/response (str (h/html (page (home-page))))))
   (c/GET "/cols" [] (r/response (str (h/html (page (manycols))))))
@@ -35,8 +37,18 @@
 
 
   ;; TODO: malli схемы на входные параметры для связи компонентов
-  (c/GET "/board" [] (r/response (str (h/html (page (bboard board-storage))))))
-  (c/GET "/api/board/add-card-input" request (r/response (str (h/html (add-card-input request)))))
+  ;; (c/GET "/board" [] (r/response (str (h/html (page (bboard board-storage))))))
+  ;; TODO: board name as storage key
+  (c/GET "/board" [] (-> @board-storage
+                         default-board
+                         bboard
+                         page
+                         h/html
+                         str
+                         r/response))
+  ;; (c/GET "/api/board/add-card-input" request (r/response (str (h/html (add-card-input request)))))
+  (c/GET "/api/board/add-card-input" request (-> request :params add-card-input h/html str r/response))
+  
   (c/POST "/api/board/add-card-input" request (-> request
                                                   :params
                                                   keywordize-keys

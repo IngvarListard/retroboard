@@ -7,7 +7,6 @@
   (let [arr (get-in storage path)
         idx (or idx (count arr))
         -add-col (fn [cols-arr col]
-                   (println "Полученный массив: " arr)
                    (c/in-place cols-arr col idx))]
     (update-in storage path -add-col new-val)))
 

@@ -1,6 +1,7 @@
 (ns common.compjs
   (:require [squint.compiler :as squint]
-            [hiccup2.core :as h]))
+            [hiccup2.core :as h]
+            [cheshire.core :as json]))
 
 (def state (atom nil))
 
@@ -22,6 +23,9 @@
         (do-format-raw-string)
         (h/raw))))
 
+(defn hx-vals
+  [v]
+  (json/generate-string v))
 (comment
   (str (raw-hiccup [:div {:a "%s"}] "{'a': 'b'}"))
   :rcf)
