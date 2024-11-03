@@ -11,9 +11,7 @@
             [retroboard.ui.core :refer [page]]
             [retroboard.ui.components.testcols :refer [manycols]]
             [retroboard.wsapi.core :as ws]
-            [retroboard.ui.components.wstest :refer [wsexample]]
             [clojure.walk :refer [keywordize-keys]]
-            [retroboard.views.append-test :refer [some-list append]]
             [retroboard.ui.components.board :refer [retroboard add-card-input do-add-card]]
             [retroboard.storage.boards :refer [add-board new-card]])
 
@@ -33,7 +31,6 @@
 (c/defroutes app-routes
   (c/GET "/" [] (r/response (str (h/html (page (home-page))))))
   (c/GET "/cols" [] (r/response (str (h/html (page (manycols))))))
-  (c/GET "/wsexample" [] (r/response (str (h/html (page (wsexample))))))
 
   ;; TODO: malli схемы на входные параметры для связи компонентов
   ;; (c/GET "/board" [] (r/response (str (h/html (page (bboard board-storage))))))
@@ -55,8 +52,7 @@
                                                   str
                                                   r/response))
 
-  (c/POST "/api/board/append" request (r/response (str (h/html (append request)))))
-  (c/GET "/append-test" _ (r/response (str (h/html (page (some-list))))))
+  ;; (c/POST "/api/board/delete-card" request (-> request :params keywordize-keys delete-card h/html str r/response))
   (route/resources "/")
   (route/not-found "Not Found"))
 

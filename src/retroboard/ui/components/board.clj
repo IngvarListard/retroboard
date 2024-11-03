@@ -120,6 +120,7 @@
 ;; TODO: принимать название канала в boards
 
 (def default-board "board2")
+(def default-board-key :board-1)
 
 (defn pub!
   ([text] (pub! default-board text))
@@ -129,11 +130,11 @@
   "Отправить карту через websocket"
   [{:keys [col-number text-input] :as params} board]
   (println "params " params)
-  (let [col-number (-> col-number u/parse-int)]
-    (swap! board #(a/add-in-place % [:board-1 :cols col-number :cards] (new-card :text text-input)))
-
+  (let [col-number (-> col-number u/parse-int)
+        card (new-card :text text-input)]
+    (swap! board #(a/add-in-place % [default-board-key :cols col-number :cards] card))
     (pub! (-> [:div {:hx-swap-oob (str "beforeend:#col-" col-number)}
-               [:div text-input]]
+               (board-card {:text text-input})]
               h/html
               str))
     (get-add-card-input-button col-number)))
