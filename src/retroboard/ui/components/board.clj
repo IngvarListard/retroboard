@@ -1,7 +1,6 @@
 (ns retroboard.ui.components.board
   (:require [hiccup2.core :as h]
-            [retroboard.wsapi.core :refer [boards]]
-            [manifold.bus :as bus]
+            [retroboard.wsapi.core :refer [board-transport pub!]]
             [retroboard.storage.add :as a]
             [retroboard.storage.boards :refer [new-card]]
             [retroboard.utils.common :as u]
@@ -17,13 +16,15 @@
 
 (def icons
   {::check "/icons/check2.svg"
-   ::plus "/icons/plus-lg.svg"})
+   ::plus "/icons/plus-lg.svg"
+   ::x "/icons/x.svg"})
+
+(def retroboard-topic "board2")
+(def default-board-key :board-1)
 
 (defn add-card-input
   "Поле ввода для добавления новой карты в колонку"
-  [{:keys [col-number] :as r}]
-  (println r "params?")
-  (println col-number "colnum?")
+  [{:keys [col-number]}]
   (let [input-id (str "add-card-input-" col-number)
         placeholder "Введите текст..."
         input-name "text-input"]
@@ -40,15 +41,13 @@
              hx-include (format "[name='%s']" input-name)]
          [:div {:class "d-grid justify-content-end"}
         ;; raw для hx-include, hx-vals
-          (println col-number "dafuck")
           (raw-hiccup
            [:button
             {:class "btn btn-outline-secondary"
              :type "button"
-            ;;  :hx-include "closest .row, [id^='col-']"
              :hx-include hx-include
              :hx-target swap-target
-             :hx-vals include-vals  ;; example
+             :hx-vals include-vals
              :hx-post (-> api ::add-card-input)}
             [:img {:class "icon" :src (-> icons ::check)}]])])]]]))
 
@@ -74,10 +73,16 @@
        [:img {:class "icon" :src (-> icons ::plus)}]]])))
 
 (defn board-card
-  [{:keys [id text]}]
+  [idx {:keys [id text]}]
   [:div
-   {:id id :class "card"}
-   [:div text]])
+   {:id id
+    :class "card p-2 m-2 position-relative"}
+   [:button
+    {:type "button"
+     :aria-label "Close"
+     :class "btn position-absolute top-0 end-0 m-0 align-center btn-sm"}
+    [:img {:class "icon" :src (-> icons ::x)}]]
+   [:div text]]) ; Центрирование текста внутри карточки
 
 (defn board-column
   [idx {:keys [name cards]}]
@@ -87,7 +92,7 @@
     [:p name]
     (into
      [:div]
-     (vec (map board-card cards)))]
+     (vec (map-indexed board-card cards)))]
    (get-add-card-input-button idx)])
 
 (defn retroboard
@@ -119,22 +124,21 @@
   :rcf)
 ;; TODO: принимать название канала в boards
 
-(def default-board "board2")
-(def default-board-key :board-1)
 
-(defn pub!
-  ([text] (pub! default-board text))
-  ([board text] (bus/publish! boards board text)))
-
-(defn do-add-card
+(defn add-card!
   "Отправить карту через websocket"
-  [{:keys [col-number text-input] :as params} board]
-  (println "params " params)
+  [{:keys [col-number text-input board-key]} board & {:keys [bkey]}]
+
   (let [col-number (-> col-number u/parse-int)
-        card (new-card :text text-input)]
-    (swap! board #(a/add-in-place % [default-board-key :cols col-number :cards] card))
-    (pub! (-> [:div {:hx-swap-oob (str "beforeend:#col-" col-number)}
-               (board-card {:text text-input})]
+        card (new-card :text text-input)
+        board-key (or board-key bkey default-board-key)
+        new-card-idx (count (get-in @board [board-key :cols col-number :cards]))]
+
+    (swap! board #(a/add-in-place % [board-key :cols col-number :cards] card))
+    (pub! retroboard-topic
+          (-> [:div {:hx-swap-oob (str "beforeend:#col-" col-number)}
+               (board-card new-card-idx {:text text-input})]
               h/html
               str))
+
     (get-add-card-input-button col-number)))

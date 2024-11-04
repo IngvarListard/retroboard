@@ -21,9 +21,13 @@
       (s/connect socket socket))
     non-websocket-request))
 
-(def boards (bus/event-bus))
+(def board-transport (bus/event-bus))
 
-(defn pub [text] (bus/publish! boards "board1" text))
+
+(defn pub!
+  [board-topic text]
+  (bus/publish! board-transport board-topic text))
+
 
 (defn add-card-handler [req]
   (d/let-flow [conn (d/catch
@@ -33,11 +37,11 @@
                 non-websocket-request
                 (do
                   (s/connect
-                   (bus/subscribe boards "board1")
+                   (bus/subscribe board-transport "board1")
                    conn)
                   (println "subscribed")
                   (s/consume
-                   #(bus/publish! boards "board1" %)
+                   #(bus/publish! board-transport "board1" %)
                    (->> conn
                         (s/map #(str name ": " %))
                         (s/buffer 100)))))))
@@ -50,11 +54,11 @@
                 non-websocket-request
                 (do
                   (s/connect
-                   (bus/subscribe boards "board2")
+                   (bus/subscribe board-transport "board2")
                    conn)
                   (println "subscribed")
                   (s/consume
-                   #(bus/publish! boards "board2" %)
+                   #(bus/publish! board-transport "board2" %)
                    (->> conn
                         (s/map #(str name ": " %))
                         (s/buffer 100)))))))
