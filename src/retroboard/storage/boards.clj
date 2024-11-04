@@ -2,7 +2,8 @@
   (:require  [retroboard.storage.update :as u]
              [retroboard.storage.common :as c]
              [retroboard.storage.add :as a]
-             [retroboard.storage.remove :as r])
+             [retroboard.storage.remove :as r]
+             [retroboard.utils.common :as utils])
   (:import [java.util UUID]))
 
 (defn gen-uuid
@@ -16,7 +17,7 @@
 
 (defn new-card
   [& {:keys [id text]
-      :or {id (gen-uuid) text ""}}]
+      :or {id (utils/random-string) text ""}}]
   {:id id :text text})
 
 (defn new-board

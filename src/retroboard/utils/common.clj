@@ -9,7 +9,7 @@
 
 (defn random-string
   ([length]
-   (let [chars "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+   (let [chars "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
          random (Random.)]
      (apply str (repeatedly length #(nth chars (.nextInt random (count chars)))))))
   ([]

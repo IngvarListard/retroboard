@@ -1,10 +1,10 @@
 (ns retroboard.ui.components.board
   (:require [hiccup2.core :as h]
-            [retroboard.wsapi.core :refer [board-transport pub!]]
             [retroboard.storage.add :as a]
             [retroboard.storage.boards :refer [new-card]]
             [retroboard.utils.common :as u]
-            [common.compjs :refer [raw-hiccup hx-vals]]))
+            [common.compjs :refer [raw-hiccup hx-vals]]
+            [retroboard.wsapi.board-topic :as bt]))
 
 (def n
   "Сквозные имена компонентов"
@@ -12,14 +12,16 @@
    ::board "board"})
 
 (def api
-  {::add-card-input "/api/board/add-card-input"})
+  {::get-add-card-input "/api/board/add-card-input"
+   ::add-card "/api/board/add-card"
+   ::delete-card "/api/board/delete-card"})
 
 (def icons
   {::check "/icons/check2.svg"
    ::plus "/icons/plus-lg.svg"
    ::x "/icons/x.svg"})
 
-(def retroboard-topic "board2")
+;; (def retroboard-topic "board2")
 (def default-board-key :board-1)
 
 (defn add-card-input
@@ -48,7 +50,7 @@
              :hx-include hx-include
              :hx-target swap-target
              :hx-vals include-vals
-             :hx-post (-> api ::add-card-input)}
+             :hx-post (-> api ::add-card)}
             [:img {:class "icon" :src (-> icons ::check)}]])])]]]))
 
 (comment
@@ -68,20 +70,29 @@
        {:class "btn btn-outline-secondary"
         :id "add-card-button"
         :hx-vals include-vals
-        :hx-get (-> api ::add-card-input)
+        :hx-get (-> api ::get-add-card-input)
         :hx-swap "outerHTML"}
        [:img {:class "icon" :src (-> icons ::plus)}]]])))
 
 (defn board-card
-  [idx {:keys [id text]}]
+  [idx {:keys [id text]} col-number]
   [:div
    {:id id
+    :hx-swap-oob "true"
     :class "card p-2 m-2 position-relative"}
-   [:button
-    {:type "button"
-     :aria-label "Close"
-     :class "btn position-absolute top-0 end-0 m-0 align-center btn-sm"}
-    [:img {:class "icon" :src (-> icons ::x)}]]
+   (let [include-vals (hx-vals {:card-number idx
+                                :col-number col-number
+                                :card-id id})]
+     (raw-hiccup
+      [:button
+       {:type "button"
+        :aria-label "Close"
+        :hx-vals include-vals
+        :hx-post (-> api ::delete-card)
+        ;; :hx-target "closest .card"
+        :hx-swap "none"
+        :class "btn position-absolute top-0 end-0 m-0 align-center btn-sm"}
+       [:img {:class "icon" :src (-> icons ::x)}]]))
    [:div text]]) ; Центрирование текста внутри карточки
 
 (defn board-column
@@ -92,7 +103,7 @@
     [:p name]
     (into
      [:div]
-     (vec (map-indexed board-card cards)))]
+     (vec (map-indexed #(board-card %1 %2 idx) cards)))]
    (get-add-card-input-button idx)])
 
 (defn retroboard
@@ -122,9 +133,8 @@
    [:div {:id "row" :class "flex-fill row"}]
    (vec (map-indexed board-column [asdf])))
   :rcf)
-;; TODO: принимать название канала в boards
 
-
+;; TODO: перенести функцию в board/views.clj
 (defn add-card!
   "Отправить карту через websocket"
   [{:keys [col-number text-input board-key]} board & {:keys [bkey]}]
@@ -135,10 +145,10 @@
         new-card-idx (count (get-in @board [board-key :cols col-number :cards]))]
 
     (swap! board #(a/add-in-place % [board-key :cols col-number :cards] card))
-    (pub! retroboard-topic
-          (-> [:div {:hx-swap-oob (str "beforeend:#col-" col-number)}
-               (board-card new-card-idx {:text text-input})]
-              h/html
-              str))
+    (bt/pub! (-> [:div {:hx-swap-oob (str "beforeend:#col-" col-number)}
+                  (board-card new-card-idx {:id (u/random-string) :text text-input}
+                              col-number)]
+                 h/html
+                 str))
 
     (get-add-card-input-button col-number)))

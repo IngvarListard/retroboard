@@ -27,10 +27,9 @@
   ;; TODO: board name as storage key
   (c/GET "/board" request (bv/get-board request board-storage :board-key default-board))
   (c/GET "/api/board/add-card-input" request (bv/get-add-card-input-button request))
-  (c/POST "/api/board/add-card-input" request (bv/do-add-card! request board-storage :board-key default-board))
+  (c/POST "/api/board/add-card" request (bv/do-add-card! request board-storage :board-key default-board))
 
-
-  ;; (c/POST "/api/board/delete-card" request (-> request :params keywordize-keys delete-card h/html str r/response))
+  (c/POST "/api/board/delete-card" request (bv/do-delete-card! request board-storage :board-key default-board))
   (route/resources "/")
   (route/not-found "Not Found"))
 
