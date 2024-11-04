@@ -112,11 +112,16 @@
 
   [:div {:id "retroboard" :class "container-fluid"}
    [:input {:type "hidden" :name (::board n) :value name}]
+
    [:div {:id "board-theme-text" :class "card-body"}
     [:h5 {:id "board-theme-title" :class "card-title"}
      name]
     [:p {:id "board-theme-desc" :class "card-text"}
      theme]]
+   [:div {:class "top-0 end-0 m-0 align-center "}
+    [:button {:class "btn btn-primary btn-sm"}
+     "Add column"]]
+
      ;; TODO: row-cols-#
    (into
     [:div {:id "retroboard-cards"

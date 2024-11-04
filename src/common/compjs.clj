@@ -26,6 +26,7 @@
 (defn hx-vals
   [v]
   (json/generate-string v))
+
 (comment
   (str (raw-hiccup [:div {:a "%s"}] "{'a': 'b'}"))
   :rcf)
