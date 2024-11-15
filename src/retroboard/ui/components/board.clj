@@ -53,6 +53,36 @@
              :hx-post (-> api ::add-card)}
             [:img {:class "icon" :src (-> icons ::check)}]])])]]]))
 
+
+(defn add-col-input
+  "Поле ввода для добавления новой колонки"
+  [{:keys [col-number]}]
+  (let [input-id (str "add-col-input-" col-number)
+        placeholder "Введите текст..."
+        input-name "col-text-input"]
+    [:div {:id input-id}
+     [:div {:class "mb-3"}
+      [:div
+       [:input
+        {:type "text",
+         :class "form-control",
+         :placeholder placeholder
+         :name input-name}]
+       (let [swap-target (str "#" input-id)
+             include-vals (hx-vals {:col-number col-number})
+             hx-include (format "[name='%s']" input-name)]
+         [:div {:class "d-grid justify-content-end"}
+        ;; raw для hx-include, hx-vals
+          (raw-hiccup
+           [:button
+            {:class "btn btn-outline-secondary"
+             :type "button"
+             :hx-include hx-include
+             :hx-target swap-target
+             :hx-vals include-vals
+             :hx-post (-> api ::add-card)}
+            [:img {:class "icon" :src (-> icons ::check)}]])])]]]))
+
 (comment
   (def selector-example
     "Пример поиска значений по подстроке. Ищет ближайший элемент

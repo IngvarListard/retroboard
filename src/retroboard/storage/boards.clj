@@ -48,13 +48,10 @@
     (swap! storage into board)
     storage))
 
+(comment 
+  :rcf)
 (comment
   (def b (add-board))
-
-  (a/add-in-place @b [:board-1 :cols] {:c "col-add-card" :cards [{:card "new-card-new-col"}]} :idx 6)
-  (a/add-in-place @b [:board-1 :cols] {:new-col "new-col" :cards []} :idx 0)
-  (swap! b #(a/add-in-place % [:board-1 :cols] {:new-col "new-col" :cards []} :idx 0))
-  (swap! b #(a/add-in-place % [:board-1 :cols 0 :cards] {:card-id 888} :idx 0))
 
   (r/remove-from-board-in @b [:board-1 :cols] 0)
   (swap! b #(r/remove-from-board-in % [:board-1 :cols 0 :cards] 0))
