@@ -21,7 +21,6 @@
    ::plus "/icons/plus-lg.svg"
    ::x "/icons/x.svg"})
 
-;; (def retroboard-topic "board2")
 (def default-board-key :board-1)
 
 (defn add-card-input
@@ -30,36 +29,6 @@
   (let [input-id (str "add-card-input-" col-number)
         placeholder "Введите текст..."
         input-name "text-input"]
-    [:div {:id input-id}
-     [:div {:class "mb-3"}
-      [:div
-       [:input
-        {:type "text",
-         :class "form-control",
-         :placeholder placeholder
-         :name input-name}]
-       (let [swap-target (str "#" input-id)
-             include-vals (hx-vals {:col-number col-number})
-             hx-include (format "[name='%s']" input-name)]
-         [:div {:class "d-grid justify-content-end"}
-        ;; raw для hx-include, hx-vals
-          (raw-hiccup
-           [:button
-            {:class "btn btn-outline-secondary"
-             :type "button"
-             :hx-include hx-include
-             :hx-target swap-target
-             :hx-vals include-vals
-             :hx-post (-> api ::add-card)}
-            [:img {:class "icon" :src (-> icons ::check)}]])])]]]))
-
-
-(defn add-col-input
-  "Поле ввода для добавления новой колонки"
-  [{:keys [col-number]}]
-  (let [input-id (str "add-col-input-" col-number)
-        placeholder "Введите текст..."
-        input-name "col-text-input"]
     [:div {:id input-id}
      [:div {:class "mb-3"}
       [:div
@@ -152,7 +121,6 @@
     [:button {:class "btn btn-primary btn-sm"}
      "Add column"]]
 
-     ;; TODO: row-cols-#
    (into
     [:div {:id "retroboard-cards"
            :class "row row-cols-4"
@@ -162,12 +130,6 @@
 
     (vec (map-indexed board-column cols)))])
 
-(comment
-  (def asdf {:id 1, :name "Column theme", :cards [{:id "e4e84d21-be16-4f0a-87d7-57130fda13c2", :text "card col 1"}]})
-  (into
-   [:div {:id "row" :class "flex-fill row"}]
-   (vec (map-indexed board-column [asdf])))
-  :rcf)
 
 ;; TODO: перенести функцию в board/views.clj
 (defn add-card!

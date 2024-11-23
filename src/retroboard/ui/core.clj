@@ -29,8 +29,6 @@
      "sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ"}]
    [:script
     {:src "/js/ws.js"}]
-  ;;  [:script
-  ;;   {:src "/js/squint.js"}]
    [:script {:type "importmap"}
     (h/raw (json/generate-string
             {:imports
@@ -97,5 +95,4 @@
                      (let [today (new Date)
                            d (new Date $.year $.month date)]
                        (identical? (-> today .toDateString) (-> d .toDateString)))))})))
-
   :rcf)
