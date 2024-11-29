@@ -2,7 +2,8 @@
   (:require [retroboard.storage.common :as c]))
 
 (defn add-in-place
-  "Вставка значения в массив"
+  "Вставка значения в массив. Вставляет в конец массива
+   если не передан idx"
   [storage path new-val & {:keys [idx]}]
   (let [arr (get-in storage path)
         idx (or idx (count arr))

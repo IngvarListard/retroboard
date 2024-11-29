@@ -1,7 +1,7 @@
 (ns retroboard.ui.components.board
   (:require [hiccup2.core :as h]
             [retroboard.storage.add :as a]
-            [retroboard.storage.boards :refer [new-card]]
+            [retroboard.storage.boards :refer [new-card new-col]]
             [retroboard.utils.common :as u]
             [common.compjs :refer [raw-hiccup hx-vals]]
             [retroboard.wsapi.board-topic :as bt]))
@@ -14,7 +14,8 @@
 (def api
   {::get-add-card-input "/api/board/add-card-input"
    ::add-card "/api/board/add-card"
-   ::delete-card "/api/board/delete-card"})
+   ::delete-card "/api/board/delete-card"
+   ::add-col "/api/board/add-col"})
 
 (def icons
   {::check "/icons/check2.svg"
@@ -118,7 +119,8 @@
     [:p {:id "board-theme-desc" :class "card-text"}
      theme]]
    [:div {:class "top-0 end-0 m-0 align-center "}
-    [:button {:class "btn btn-primary btn-sm"}
+    [:button {:class "btn btn-primary btn-sm"
+              :hx-post (-> api ::add-col)}
      "Add column"]]
 
    (into
@@ -139,13 +141,30 @@
   (let [col-number (-> col-number u/parse-int)
         card (new-card :text text-input)
         board-key (or board-key bkey default-board-key)
-        new-card-idx (count (get-in @board [board-key :cols col-number :cards]))]
+        new-card-idx (count (get-in @board [board-key :cols col-number :cards]))
+        new-board-card (board-card
+                        new-card-idx
+                        {:id (u/random-string) :text text-input} col-number)]
 
     (swap! board #(a/add-in-place % [board-key :cols col-number :cards] card))
     (bt/pub! (-> [:div {:hx-swap-oob (str "beforeend:#col-" col-number)}
-                  (board-card new-card-idx {:id (u/random-string) :text text-input}
-                              col-number)]
+                  new-board-card]
                  h/html
                  str))
 
     (get-add-card-input-button col-number)))
+
+(defn add-col!
+  [{:keys [board-key]} board]
+  (let [col (new-col)
+        new-col (board-column (:id col) col)]
+
+    (swap! board #(a/add-in-place % [board-key :cols] col))
+    (bt/pub! (-> [:div {:hx-swap-oob (str "beforeend:#retroboard-cards")}
+                  new-col]
+                 h/html
+                 str))
+    "OK"))
+
+(comment
+  :rcf)

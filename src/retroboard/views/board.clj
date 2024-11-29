@@ -46,3 +46,10 @@
                  h/html
                  str))
     (r/response "")))
+
+(defn do-add-col!
+  [request storage & {:keys [board-key]}]
+  (-> (bui/add-col! {:board-key board-key} storage)
+      h/html
+      str
+      r/response))

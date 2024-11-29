@@ -10,7 +10,7 @@
 
 (defn new-col
   [& {:keys [id name cards]
-      :or {id (gen-uuid) name "NO COL THEME" cards []}}]
+      :or {id (utils/random-string) name "Untitled" cards []}}]
   {:id id :name name :cards cards})
 
 (defn new-card
