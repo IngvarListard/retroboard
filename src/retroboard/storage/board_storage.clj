@@ -1,4 +1,4 @@
-(ns retroboard.storage.boards
+(ns retroboard.storage.board-storage
   (:require
    [retroboard.utils.common :as utils])
   (:import

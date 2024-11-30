@@ -1,7 +1,7 @@
-(ns retroboard.ui.components.board
+(ns retroboard.ui.components.board-ui
   (:require [hiccup2.core :as h]
             [retroboard.storage.add :as a]
-            [retroboard.storage.boards :refer [new-card new-col]]
+            [retroboard.storage.board-storage :refer [new-card new-col]]
             [retroboard.utils.common :as u]
             [common.compjs :refer [raw-hiccup hx-vals]]
             [retroboard.wsapi.board-topic :as bt]))

@@ -5,9 +5,9 @@
             [ring.middleware.json :refer [wrap-json-response]]
             [ring.middleware.params :refer [wrap-params]]
             [ring.middleware.reload :refer [wrap-reload]]
-            [retroboard.views.board :as bv]
+            [retroboard.views.board-view :as bv]
             [retroboard.wsapi.core :as ws]
-            [retroboard.storage.boards :refer [add-board new-card]])
+            [retroboard.storage.board-storage :refer [add-board new-card]])
 
   (:gen-class))
 

@@ -1,9 +1,9 @@
-(ns retroboard.views.board
+(ns retroboard.views.board-view
   (:require
    [clojure.walk :refer [keywordize-keys]]
    [hiccup2.core :as h]
    [retroboard.storage.remove :as rm]
-   [retroboard.ui.components.board :as bui]
+   [retroboard.ui.components.board-ui :as bui]
    [retroboard.ui.core :refer [page]]
    [retroboard.utils.common :as u]
    [retroboard.wsapi.board-topic :as bt]
